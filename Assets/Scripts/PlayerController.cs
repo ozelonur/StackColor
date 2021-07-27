@@ -2,37 +2,51 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using DG.Tweening;
 
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance = null;
-    public Transform stackPosition;
-    public Color caseColor;
 
-    private float xRange = 1;
+    // Managers
+    private ObjectManager objectManager;
+    private GameManager gameManager;
 
+    [SerializeField]private Transform stackPosition;
+    [SerializeField] private Color caseColor;
+
+    public static Action<float> Kick;
+
+    public bool IsPlaying { get { return IsPlaying1; } set { IsPlaying1 = value; } }
+
+    public Rigidbody PlayerRigidbody { get => playerRigidbody; set => playerRigidbody = value; }
+    public Animator PlayerAnimator { get => playerAnimator; set => playerAnimator = value; }
+    public bool IsGameOver { get => isGameOver; set => isGameOver = value; }
+    public bool IsGameComplete { get => isGameComplete; set => isGameComplete = value; }
+    public bool IsPlaying1 { get => isPlaying; set => isPlaying = value; }
+    public bool AtEnd { get => atEnd; set => atEnd = value; }
+    public float ForwardForce { get => forwardForce; set => forwardForce = value; }
+    public float ForceAdder { get => forceAdder; set => forceAdder = value; }
 
     private Renderer playerRenderer;
 
     private Rigidbody playerRigidbody;
 
-    private float forwardSpeed = 2f;
-    private float sensivity = 1f;
-
-    private Vector3 difference;
-    private Vector3 firstPosition;
-    private Vector3 mousePosition;
 
     private bool atEnd;
-    private float forwardForce;
-    private float forceAdder;
-    private float forceReducer;
-
     private bool isPlaying;
+    private bool isGameOver;
+    private bool isGameComplete;
 
-    public static Action<float> Kick;
+    private float forwardForce = 100;
+    private float forceAdder;
+    private float multiplierValue;
 
+    private int score;
 
+    private Animator playerAnimator;
+
+    private Settings settings;
     private void Awake()
     {
         if (Instance == null)
@@ -40,109 +54,39 @@ public class PlayerController : MonoBehaviour
             Instance = this;
         }
 
-        playerRenderer = GameObject.Find("kasa").GetComponent<Renderer>();
-        playerRigidbody = GetComponent<Rigidbody>();
+        playerRenderer = transform.GetChild(0).transform.Find("kasa").GetComponent<Renderer>();
+        PlayerRigidbody = GetComponent<Rigidbody>();
+        PlayerAnimator = GetComponentInChildren<Animator>();
+
 
     }
     // Start is called before the first frame update
     void Start()
     {
+        objectManager = ObjectManager.Instance;
+        gameManager = GameManager.Instance;
         playerRenderer.materials[1].SetColor("_Color", caseColor);
-
-    }
-
-    // Update is called once per frame
-    void FixedUpdate()
-    {
-        if (isPlaying)
-        {
-            playerRigidbody.velocity = Vector3.Lerp(playerRigidbody.velocity, new Vector3(difference.x, playerRigidbody.velocity.y, forwardSpeed), 1f);
-            if (transform.position.x < -xRange)
-            {
-                transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
-            }
-            else if (transform.position.x > xRange)
-            {
-                transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
-            }
-        }
-
-    }
-    private void Update()
-    {
-        if (isPlaying)
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                MouseDown(Input.mousePosition);
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                MouseUp();
-            }
-            else if (Input.GetMouseButton(0))
-            {
-                MouseHold(Input.mousePosition);
-            }
-        }
-        if (atEnd)
-        {
-            forwardForce -= forceReducer * Time.deltaTime;
-            if (forwardForce < 0)
-            {
-                forwardForce = 0;
-            }
-        }
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (atEnd)
-            {
-                forwardForce += forceAdder;
-            }
-        }
-
-
-    }
-
-    private void MouseDown(Vector3 inputPosition)
-    {
-        mousePosition = ObjectManager.Instance.orthographicCamera.ScreenToWorldPoint(inputPosition);
-        firstPosition = mousePosition;
-    }
-
-    private void MouseHold(Vector3 inputPosition)
-    {
-        mousePosition = ObjectManager.Instance.orthographicCamera.ScreenToWorldPoint(inputPosition);
-        difference = mousePosition - firstPosition;
-        difference *= sensivity;
-    }
-
-    private void MouseUp()
-    {
-        difference = Vector3.zero;
+        IsGameOver = false;
+        settings = objectManager.Settings;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.tag ==  "FinishLineStart")
+        if (other.CompareTag(Constants.FINIS_LINE_END))
         {
-            atEnd = true;
-        }
-        if (other.tag == "FinishLineEnd")
-        {
-            playerRigidbody.velocity = Vector3.zero;
-            LaunchStack();
+            print("Hit");
+            StartCoroutine(gameManager.GameComplete());
         }
 
-        if (atEnd)
+        if (AtEnd)
         {
             return;
         }
-        if (other.gameObject.tag == "Cube")
+        if (other.gameObject.CompareTag(Constants.CUBE))
         {
             Transform otherTransform = other.transform;
             Rigidbody otherRigidbody = otherTransform.GetComponent<Rigidbody>();
-            if (caseColor == other.GetComponent<Cube>().pickupColor)
+            if (caseColor == other.GetComponent<Cube>().PickupColor)
             {
                 otherRigidbody.isKinematic = true;
                 other.enabled = false;
@@ -156,20 +100,21 @@ public class PlayerController : MonoBehaviour
             {
                 if (stackPosition.childCount < 1)
                 {
-                    print("Game Over!!");
+                    gameManager.GameOver();
                 }
 
                 else
                 {
                     Destroy(stackPosition.GetChild(stackPosition.childCount - 1).gameObject);
+                    Destroy(other.gameObject);
 
                 }
 
             }
-            
+
         }
 
-        else if (other.gameObject.tag == "Wall")
+        else if (other.gameObject.CompareTag(Constants.WALL))
         {
             Color wallColor = other.gameObject.GetComponent<Renderer>().material.color;
             caseColor = wallColor;
@@ -185,8 +130,31 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void LaunchStack()
+    public void LaunchStack()
     {
-        Kick(forwardForce);
+        Kick(ForwardForce);
     }
+    public void UpdateScore(int value)
+    {
+        score += value;
+        objectManager.ScoreText.text = score.ToString();
+    }
+    public void UpdateMultiplier(float value)
+    {
+        if (true)
+        {
+
+        }
+        UpdateScore((int)value);
+        if (value <= multiplierValue)
+        {
+            return;
+        }
+
+        multiplierValue = value;
+        objectManager.ScoreText.text = (score * multiplierValue).ToString();
+
+    }
+
+
 }
