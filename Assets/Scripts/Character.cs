@@ -20,6 +20,6 @@ public class Character : MonoBehaviour
         Vector3 camPos = Camera.main.transform.position;
         
         transform.DOLookAt(new Vector3(camPos.x, transform.position.y, camPos.z), 2);
-        PlayerController.Instance.PlayerAnimator.SetTrigger("Dance");
+        PlayerController.Instance.PlayerAnimator.SetTrigger(Constants.ANIM_DANCE);
     }
 }

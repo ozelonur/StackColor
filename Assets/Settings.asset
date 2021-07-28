@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Settings
   m_EditorClassIdentifier: 
   xRange: 1
-  forceReducer: 2
+  forceReducer: 75
   forwardSpeed: 3
-  sensivity: 2
+  sensivity: 8
   multiplierValue: 2

@@ -31,7 +31,11 @@ public class PlayerMovement : MonoBehaviour
         if (playerController.IsPlaying)
         {
             playerRigidbody.velocity = Vector3.Lerp(playerRigidbody.velocity, new Vector3(difference.x, playerRigidbody.velocity.y, settings.ForwardSpeed), 1f);
-            playerAnimator.SetFloat("Run", 1);
+            playerAnimator.SetFloat(Constants.ANIM_RUN, 1);
+        }
+        else
+        {
+            playerAnimator.SetFloat(Constants.ANIM_RUN, 0);
         }
 
     }
@@ -44,14 +48,7 @@ public class PlayerMovement : MonoBehaviour
 
         GameEndMovement();
 
-        if (transform.position.x < -settings.XRange)
-        {
-            transform.position = new Vector3(-settings.XRange, transform.position.y, transform.position.z);
-        }
-        else if (transform.position.x > settings.XRange)
-        {
-            transform.position = new Vector3(settings.XRange, transform.position.y, transform.position.z);
-        }
+        transform.position = new Vector3(Mathf.Clamp(transform.position.x, -settings.XRange, settings.XRange), transform.position.y, transform.position.z);
     }
 
     private void MouseDown(Vector3 inputPosition)

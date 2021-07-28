@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,6 +9,13 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance = null;
     private PlayerController playerController;
     private ObjectManager objectManager;
+
+    public Action GameComplete;
+    public Action GameOverAction;
+
+    private int coin = 0;
+
+    public int Coin { get => coin; set => coin = value; }
 
     private void Awake()
     {
@@ -23,31 +31,8 @@ public class GameManager : MonoBehaviour
         playerController.IsPlaying = false;
 
         objectManager = ObjectManager.Instance;
-        objectManager.EndGameText.text = "Tap to Start";
+        objectManager.EndGameText.text = Constants.TAP_TO_START;
         objectManager.BestScoreText.gameObject.SetActive(false);
-    }
-
-
-    public void GameOver()
-    {
-        playerController.IsGameOver = true;
-        playerController.PlayerRigidbody.velocity = Vector3.zero;
-        playerController.IsPlaying = false;
-        playerController.PlayerAnimator.SetTrigger("Die");
-        StartCoroutine(WaitAndFinish());
-    }
-
-    public IEnumerator GameComplete()
-    {
-        playerController.IsPlaying = false;
-        playerController.PlayerRigidbody.velocity = Vector3.zero;
-        playerController.LaunchStack();
-        yield return new WaitForSeconds(3);
-
-        Character.Instance.PlayDance();
-        playerController.IsGameComplete = true;
-        objectManager.EndGameText.gameObject.SetActive(true);
-        objectManager.EndGameText.text = "Next Level";
     }
 
     public void OnClickStart()
@@ -64,11 +49,5 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    IEnumerator WaitAndFinish()
-    {
-        yield return new WaitForSeconds(3);
-        objectManager.EndGameText.gameObject.SetActive(true);
-        objectManager.EndGameText.text = "Try Again";
-    }
 
 }

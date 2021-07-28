@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Cube : MonoBehaviour
+public class Cube : MonoBehaviour, IProperty
 {
     public static Cube Instance;
     [SerializeField] private Color pickupColor;
@@ -11,6 +11,12 @@ public class Cube : MonoBehaviour
     private Collider cubeCollider;
 
     public Color PickupColor { get => pickupColor; set => pickupColor = value; }
+
+    private Settings settings;
+    private PlayerController playerController;
+    private GameManager gameManager;
+
+
 
     private void Awake()
     {
@@ -25,24 +31,57 @@ public class Cube : MonoBehaviour
     private void Start()
     {
         Renderer renderer = GetComponent<Renderer>();
-        renderer.material.SetColor("_Color", PickupColor);
+        renderer.material.SetColor(Constants.COLOR, PickupColor);
+        settings = ObjectManager.Instance.Settings;
+        playerController = PlayerController.Instance;
+        gameManager = GameManager.Instance;
+
     }
 
-    private void OnEnable()
-    {
-        PlayerController.Kick += MyKick;
-    }
 
-    private void OnDisable()
-    {
-        PlayerController.Kick -= MyKick;
-    }
-
-    private void MyKick(float forceSent)
+    private void MyKick()
     {
         transform.parent = null;
         cubeCollider.enabled = true;
         cubeRigidbody.isKinematic = false;
-        cubeRigidbody.AddForce(new Vector3(0, 200, forceSent));
+        cubeRigidbody.AddForce(new Vector3(0, settings.ForceReducer, 150 * 3f));
+    }
+
+    public void Interact()
+    {
+        Rigidbody otherRigidbody = transform.GetComponent<Rigidbody>();
+
+        if (playerController.CaseColor == pickupColor)
+        {
+            PlayerController.Kick += playerController.StartKickAnimation;
+            PlayerController.Kick += MyKick;
+            otherRigidbody.isKinematic = true;
+            this.enabled = false;
+
+            transform.parent = playerController.StackPosition;
+            transform.position = playerController.StackPosition.position;
+            transform.position += Vector3.up * (PlayerController.childCount * (transform.localScale.y + 0.0018f));
+            PlayerController.childCount++;
+        }
+        else
+        {
+            if (PlayerController.childCount > 0)
+            {
+                Destroy(playerController.StackPosition.GetChild(playerController.StackPosition.childCount - 1).gameObject);
+                Destroy(transform.gameObject);
+                PlayerController.childCount--;
+            }
+
+            else
+            {
+                gameManager.GameOverAction();
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        PlayerController.Kick -= MyKick;
+        PlayerController.Kick -= playerController.StartKickAnimation;
     }
 }

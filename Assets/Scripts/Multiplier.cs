@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Multiplier : MonoBehaviour
+public class Multiplier : MonoBehaviour//, IProperty
 {
 
     [SerializeField] private Color multiplierColor;
 
     private Renderer multiplierRenderer;
 
-    private Settings settings;
-
+    private PlayerController playerController;
 
     private void Awake()
     {
@@ -20,14 +19,15 @@ public class Multiplier : MonoBehaviour
     void Start()
     {
         multiplierRenderer.material.color = multiplierColor;
-        settings = ObjectManager.Instance.Settings;
+        playerController = PlayerController.Instance;
     }
 
-    private void OnCollisionEnter(Collision collision)
+
+    private void OnCollisionEnter(Collision other)
     {
-        if (collision.transform.tag == "Cube")
+        if (other.gameObject.CompareTag(Constants.CUBE))
         {
-            PlayerController.Instance.UpdateMultiplier(20);
+            playerController.UpdateMultiplier(20);
         }
     }
 
