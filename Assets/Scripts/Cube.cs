@@ -16,7 +16,7 @@ public class Cube : MonoBehaviour, IProperty
     private PlayerController playerController;
     private GameManager gameManager;
 
-
+    private bool collided = false;
 
     private void Awake()
     {
@@ -49,34 +49,44 @@ public class Cube : MonoBehaviour, IProperty
 
     public void Interact()
     {
-        Rigidbody otherRigidbody = transform.GetComponent<Rigidbody>();
-
-        if (playerController.CaseColor == pickupColor)
+        if (playerController.IsPlaying)
         {
-            PlayerController.Kick += playerController.StartKickAnimation;
-            PlayerController.Kick += MyKick;
-            otherRigidbody.isKinematic = true;
-            this.enabled = false;
+            Rigidbody otherRigidbody = transform.GetComponent<Rigidbody>();
 
-            transform.parent = playerController.StackPosition;
-            transform.position = playerController.StackPosition.position;
-            transform.position += Vector3.up * (PlayerController.childCount * (transform.localScale.y + 0.0018f));
-            PlayerController.childCount++;
-        }
-        else
-        {
-            if (PlayerController.childCount > 0)
+            if (playerController.CaseColor == pickupColor)
             {
-                Destroy(playerController.StackPosition.GetChild(playerController.StackPosition.childCount - 1).gameObject);
-                Destroy(transform.gameObject);
-                PlayerController.childCount--;
-            }
+                if (!collided)
+                {
+                    PlayerController.Kick += playerController.StartKickAnimation;
+                    PlayerController.Kick += MyKick;
+                    otherRigidbody.isKinematic = true;
+                    this.enabled = false;
 
+                    transform.parent = playerController.StackPosition;
+                    transform.position = playerController.StackPosition.position;
+                    playerController.ChildCount++;
+                    transform.position += Vector3.up * (playerController.ChildCount * (transform.localScale.y + 0.0009f));
+                    collided = true;
+                }
+
+            }
             else
             {
-                gameManager.GameOverAction();
+                if (playerController.ChildCount > 0)
+                {
+                    Destroy(playerController.StackPosition.GetChild(playerController.ChildCount - 1).gameObject);
+                    Destroy(transform.gameObject);
+                    playerController.ChildCount--;
+                }
+
+                else
+                {
+                    gameManager.GameOverAction();
+                }
             }
         }
+        
+
     }
 
     private void OnDestroy()

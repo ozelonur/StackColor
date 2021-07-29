@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Multiplier : MonoBehaviour//, IProperty
+public class Multiplier : MonoBehaviour
 {
 
     [SerializeField] private Color multiplierColor;

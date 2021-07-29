@@ -7,6 +7,8 @@ public class Coin : MonoBehaviour, IProperty
     private GameManager gameManager;
     private ObjectManager objectManager;
 
+    private bool isCollided = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -14,16 +16,31 @@ public class Coin : MonoBehaviour, IProperty
         gameManager = GameManager.Instance;
         objectManager = ObjectManager.Instance;
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
     public void Interact()
     {
+        if (!isCollided)
+        {
+            gameManager.CoinAction += CoinAction;
+            gameManager.CoinAction();
+            isCollided = true;
+        }
+    }
+
+    private void CoinAction()
+    {
         gameManager.Coin++;
+        transform.DOMove(new Vector3(objectManager.CoinText.transform.position.x, objectManager.CoinText.transform.position.y, transform.position.z + .2f), .4f);
         objectManager.CoinText.text = gameManager.Coin.ToString();
+        Invoke(Constants.DESTROY_COIN, .4f);
+    }
+
+    private void DestroyCoin()
+    {
         Destroy(gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        gameManager.CoinAction -= CoinAction;
     }
 }

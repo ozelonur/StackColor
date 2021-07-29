@@ -10,7 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 04ccc0cfb455d46ff8a5610db22d5fd2, type: 3}
-  m_Name: 1
+  m_Name: Levels
   m_EditorClassIdentifier: 
-  levelPrefab: {fileID: 1866033880436750569, guid: 6e3fe4b609b66436aa7c8ab6cfde512e,
-    type: 3}
+  levelPrefab:
+  - {fileID: 255039516979919058, guid: 0cfcaa8c50403394d987658b89bd46f5, type: 3}
+  - {fileID: 6650718733977164365, guid: 237bf29c5bdfb1e44a4884a5ffd3d7ec, type: 3}

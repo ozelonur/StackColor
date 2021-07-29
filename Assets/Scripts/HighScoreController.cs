@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class HighScoreController : MonoBehaviour
 {
     public static HighScoreController Instance = null;
-    public int HighScore { get { return PlayerPrefs.GetInt("HighScore", 0); } set { PlayerPrefs.SetInt("HighScore", value); } }
+    public int HighScore { get { return PlayerPrefs.GetInt(Constants.HIGH_SCORE, 0); } set { PlayerPrefs.SetInt(Constants.HIGH_SCORE, value); } }
     private Text bestScoreText;
 
     private void Awake()
@@ -19,7 +19,7 @@ public class HighScoreController : MonoBehaviour
     private void Start()
     {
         bestScoreText = ObjectManager.Instance.BestScoreText;
-        bestScoreText.text = "Best Score \n" + HighScore.ToString();
+        bestScoreText.text = Constants.BEST_SCORE + HighScore.ToString();
     }
 
     public void HighScoreCheck(int score)
@@ -29,6 +29,6 @@ public class HighScoreController : MonoBehaviour
             HighScore = score;
         }
 
-        bestScoreText.text = HighScore.ToString();
+        bestScoreText.text = Constants.BEST_SCORE + HighScore.ToString();
     }
 }

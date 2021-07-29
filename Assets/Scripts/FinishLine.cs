@@ -14,12 +14,7 @@ public class FinishLine : MonoBehaviour, IProperty
     }
     public void Interact()
     {
-        playerController.GetComponent<Collider>().enabled = false;
-        playerController.IsPlaying = false;
-        playerController.PlayerRigidbody.velocity = Vector3.zero;
-        playerController.StartKickAnimation();
-        Invoke(Constants.THROW_CUBES, .65f);
-
+        playerController.GameEndPhysicOperations();
         Invoke(Constants.GAME_COMPLETE_INTERACTS, 2.5f);
     }
 
@@ -28,15 +23,5 @@ public class FinishLine : MonoBehaviour, IProperty
         gameManager.GameComplete();
     }
 
-    private void ThrowCubes()
-    {
-        Rigidbody[] allCubes = PlayerController.Instance.StackPosition.GetComponentsInChildren<Rigidbody>();
-        for (int i = 0; i < allCubes.Length; i++)
-        {
-            allCubes[i].transform.parent = null;
-            allCubes[i].gameObject.GetComponent<Collider>().enabled = true;
-            allCubes[i].isKinematic = false;
-            allCubes[i].AddForce(new Vector3(0, 250, i * 18));
-        }
-    }
+   
 }

@@ -8,13 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance = null;
 
-    // Managers
-    private ObjectManager objectManager;
-    private GameManager gameManager;
-    private HighScoreController highScoreController;
-
-    [SerializeField] private Transform stackPosition;
-    [SerializeField] private Color caseColor;
+    
 
     public static Action Kick;
 
@@ -30,23 +24,35 @@ public class PlayerController : MonoBehaviour
     public Color CaseColor { get => caseColor; set => caseColor = value; }
     public Renderer PlayerRenderer { get => playerRenderer; set => playerRenderer = value; }
     public Transform StackPosition { get => stackPosition; set => stackPosition = value; }
+    public int ChildCount { get => childCount; set => childCount = value; }
+    public bool AtFirst { get => atFirst; set => atFirst = value; }
 
     private Renderer playerRenderer;
 
     private Rigidbody playerRigidbody;
 
+    // Managers
+    private ObjectManager objectManager;
+    private GameManager gameManager;
+    private HighScoreController highScoreController;
 
-    private bool atEnd;
+    [SerializeField] private Transform stackPosition;
+    [SerializeField] private Color caseColor;
+
+    private GameObject character;
     private bool isPlaying;
     private bool isGameOver;
     private bool isGameComplete;
+    private bool atFirst = true;
+    private bool atEnd;
+    
 
     private float forwardForce = 100;
     private float forceAdder;
     private float multiplierValue;
 
     private int score;
-    public static int childCount = 0;
+    private int childCount = 0;
 
 
     private Animator playerAnimator;
@@ -73,12 +79,20 @@ public class PlayerController : MonoBehaviour
         gameManager.GameOverAction += GameOver;
         PlayerRenderer.materials[1].SetColor(Constants.COLOR, CaseColor);
         IsGameOver = false;
+        character = transform.GetChild(2).gameObject;
     }
 
     private void OnTriggerEnter(Collider other)
     {
         other.GetComponent<IProperty>()?.Interact();
+    }
 
+    public void GameEndPhysicOperations()
+    {
+        GetComponent<Collider>().enabled = false;
+        IsPlaying = false;
+        PlayerRigidbody.velocity = Vector3.zero;
+        StartKickAnimation();
     }
 
     public void GameComplete()
@@ -89,6 +103,14 @@ public class PlayerController : MonoBehaviour
         IsGameComplete = true;
         objectManager.EndGameText.gameObject.SetActive(true);
         objectManager.EndGameText.text = Constants.NEXT_LEVEL;
+        Invoke(Constants.LAUNCH_CONFETTI, .5f);
+        LevelManager.Instance.LevelIndex++;
+    }
+
+    private void LaunchConfetti()
+    {
+        ParticleSystem confetti = Instantiate(objectManager.Confetti, new Vector3(character.transform.position.x -.5f, character.transform.position.y, character.transform.position.z -.5f), character.transform.rotation);
+        ParticleSystem confetti1 = Instantiate(objectManager.Confetti, new Vector3(-character.transform.position.x - .5f, character.transform.position.y, character.transform.position.z - .5f), character.transform.rotation);
     }
 
     public void GameOver()

@@ -12,10 +12,10 @@ public class GameManager : MonoBehaviour
 
     public Action GameComplete;
     public Action GameOverAction;
+    public Action CoinAction;
 
-    private int coin = 0;
 
-    public int Coin { get => coin; set => coin = value; }
+    public int Coin { get { return PlayerPrefs.GetInt(Constants.COIN_COUNT, 0); } set { PlayerPrefs.SetInt(Constants.COIN_COUNT, value); } }
 
     private void Awake()
     {
@@ -33,11 +33,17 @@ public class GameManager : MonoBehaviour
         objectManager = ObjectManager.Instance;
         objectManager.EndGameText.text = Constants.TAP_TO_START;
         objectManager.BestScoreText.gameObject.SetActive(false);
+        objectManager.CoinText.text = Coin.ToString();
     }
 
     public void OnClickStart()
     {
         if (playerController.IsGameOver == true)
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        else if (playerController.IsGameComplete)
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
@@ -48,6 +54,7 @@ public class GameManager : MonoBehaviour
             objectManager.EndGameText.gameObject.SetActive(false);
         }
     }
+
 
 
 }
